@@ -77,6 +77,7 @@ cls
 
 echo.
 echo %BLUE% Everything is set up. Time to build the container. %RESET%
+echo.
 echo %BLUE% Please be patient, this might take a few minutes. %RESET%
 echo.
 
@@ -89,25 +90,22 @@ if %errorLevel% neq 0 (
     pause
     exit /b 1
 )
-)
 docker compose build
 
 :: Create start
 (
 echo @echo off
-echo :: Force elevation
-echo net session >nul 2>&1
-echo if %errorLevel% neq 0 (
-echo     powershell -Command "Start-Process '%~f0' -Verb RunAs -WindowStyle Normal -WorkingDirectory '%~dp0'"
+echo net session ^>nul 2^>^&1
+echo if %%errorLevel%% neq 0 ^(
+echo     powershell -Command "Start-Process '%%~f0' -Verb RunAs -WindowStyle Normal -WorkingDirectory '%%~dp0'"
 echo     exit /b
-echo )
-echo :: Force working directory to script location after elevation
-echo cd /d "%~dp0"
+echo ^)
+echo cd /d "%%~dp0"
 echo echo.
 echo echo Please wait while we get things ready for you.
 echo echo.
 echo start "" "C:\Program Files\Docker\Docker\Docker Desktop.exe"
-echo    timeout /t 15 /nobreak >nul
+echo timeout /t 15 /nobreak ^>nul
 echo docker compose up -d
 echo echo.
 echo echo you can close this window now
