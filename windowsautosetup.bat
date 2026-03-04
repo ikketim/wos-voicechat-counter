@@ -63,6 +63,7 @@ echo.
 
 timeout /t 2 /nobreak >nul
 npm install --omit=dev --no-audit --no-fund --quiet
+net start com.docker.service
 docker compose build
 
 :: Create start
@@ -87,3 +88,4 @@ echo %MAGNETA% Happy battling! %RESET%
 pause
 
 endlocal
+
