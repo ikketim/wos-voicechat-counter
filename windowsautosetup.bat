@@ -26,13 +26,19 @@ echo.
 
 echo %BLUE% Let's start by setting things up... %RESET%
 
-timeout /t 2 /nobreak >nul
+timeout /t 2 
 
 winget install -e --id Git.Git --accept-package-agreements --accept-source-agreements
 winget install -e --id Docker.DockerDesktop --accept-package-agreements --accept-source-agreements
-winget install -e --id OpenJS.NodeJS --accept-package-agreements --accept-source-agreements
+winget install -e --id OpenJS.NodeJS --version 20.11.0 --force --accept-package-agreements --accept-source-agreements
 git clone https://github.com/Bj0rD/wos-voicechat-counter.git counterbotVC
 cd counterbotVC
+del /q deploy.sh
+del /q *.md
+del /q env.example
+del /q config.json
+del /q .gitignore
+del /q *.bat
 mkdir config
 
 cls
@@ -71,18 +77,37 @@ cls
 
 echo.
 echo %BLUE% Everything is set up. Time to build the container. %RESET%
+echo %BLUE% Please be patient, this might take a few minutes. %RESET%
 echo.
 
 timeout /t 2 /nobreak >nul
 start "" "C:\Program Files\Docker\Docker\Docker Desktop.exe"
    timeout /t 15 /nobreak >nul
-cmd /c npm install --no-audit --no-fund
+cmd /c npm install --no-audit --no-fund 2>nul
+if %errorLevel% neq 0 (
+    echo %RED% npm install failed. Please restart the script.
+    pause
+    exit /b 1
+)
+)
 docker compose build
 
 :: Create start
 (
 echo @echo off
-echo timeout /t 5 /nobreak >nul
+echo :: Force elevation
+echo net session >nul 2>&1
+echo if %errorLevel% neq 0 (
+echo     powershell -Command "Start-Process '%~f0' -Verb RunAs -WindowStyle Normal -WorkingDirectory '%~dp0'"
+echo     exit /b
+echo )
+echo :: Force working directory to script location after elevation
+echo cd /d "%~dp0"
+echo echo.
+echo echo Please wait while we get things ready for you.
+echo echo.
+echo start "" "C:\Program Files\Docker\Docker\Docker Desktop.exe"
+echo    timeout /t 15 /nobreak >nul
 echo docker compose up -d
 echo echo.
 echo echo you can close this window now
