@@ -30,7 +30,7 @@ timeout /t 2
 
 winget install -e --id Git.Git --accept-package-agreements --accept-source-agreements
 winget install -e --id Docker.DockerDesktop --accept-package-agreements --accept-source-agreements
-winget install -e --id OpenJS.NodeJS --version 20.11.0 --force --accept-package-agreements --accept-source-agreements
+winget install -e --id OpenJS.NodeJS.LTS --force --accept-package-agreements --accept-source-agreements
 git clone https://github.com/Bj0rD/wos-voicechat-counter.git counterbotVC
 cd counterbotVC
 del /q deploy.sh
@@ -135,3 +135,4 @@ echo %MAGENTA% Happy battling! %RESET%
 pause
 
 endlocal
+
