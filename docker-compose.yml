@@ -3,6 +3,7 @@ services:
     build: .
     container_name: counterbot-vc
     restart: unless-stopped
+    network_mode: host
     environment:
       - NODE_ENV=production
       - TTS_PROVIDER=local
