@@ -146,46 +146,58 @@ class VoiceManager {
   }
 
   // Play synchronized countdown sequence
-  async playSynchronizedCountdown(guildId, players, totalDuration) {
-    const connection = this.connections.get(guildId);
-    const audioPlayer = this.audioPlayers.get(guildId);
-    
-    if (!connection || !audioPlayer) {
-      throw new Error('Voice connection not available');
-    }
+ async playSynchronizedCountdown(guildId, players, totalDuration) {
+  const connection = this.connections.get(guildId);
+  const audioPlayer = this.audioPlayers.get(guildId);
 
-    try {
-      // Generate the complete synchronized countdown audio
-      const audioResource = await this.ttsService.generateSynchronizedCountdown(players, totalDuration);
-      
-      if (audioResource) {
-        // Store the countdown timer for potential stopping
-        const countdownTimer = setTimeout(() => {
-          this.countdownTimers.delete(guildId);
-        }, (totalDuration + 5) * 1000); // Add 5 seconds buffer
-        
-        this.countdownTimers.set(guildId, countdownTimer);
-        
-        // Play the complete synchronized countdown
-        audioPlayer.play(audioResource);
-        
-        // Wait for audio to finish
-        return new Promise((resolve) => {
-          audioPlayer.once(AudioPlayerStatus.Idle, () => {
-            this.countdownTimers.delete(guildId);
-            resolve();
-          });
-        });
-      } else {
-        throw new Error('Failed to generate countdown audio');
-      }
-      
-    } catch (error) {
-      console.error('Synchronized countdown error:', error);
-      throw error;
-    }
+  if (!connection || !audioPlayer) {
+    throw new Error('Voice connection not available');
   }
 
+  try {
+    // Wait for connection to be fully ready before generating/playing audio
+    if (connection.state.status !== VoiceConnectionStatus.Ready) {
+      console.log('Waiting for voice connection to be ready...');
+      await entersState(connection, VoiceConnectionStatus.Ready, 10_000);
+    }
+    console.log('Connection is ready, generating audio...');
+
+    const audioResource = await this.ttsService.generateSynchronizedCountdown(players, totalDuration);
+
+    if (audioResource) {
+      // Re-subscribe in case it dropped
+      connection.subscribe(audioPlayer);
+
+      const countdownTimer = setTimeout(() => {
+        this.countdownTimers.delete(guildId);
+      }, (totalDuration + 5) * 1000);
+
+      this.countdownTimers.set(guildId, countdownTimer);
+
+      audioPlayer.play(audioResource);
+      console.log('Audio playing, player status:', audioPlayer.state.status);
+
+      return new Promise((resolve) => {
+        audioPlayer.once(AudioPlayerStatus.Idle, () => {
+          this.countdownTimers.delete(guildId);
+          resolve();
+        });
+        // Safety timeout in case Idle never fires
+        audioPlayer.once('error', (err) => {
+          console.error('Audio player error during playback:', err.message);
+          resolve();
+        });
+      });
+
+    } else {
+      throw new Error('Failed to generate countdown audio');
+    }
+
+  } catch (error) {
+    console.error('Synchronized countdown error:', error);
+    throw error;
+  }
+}
   // This method is no longer used with the synchronized approach
   // Kept for compatibility but not called
   async countdownForPlayer(audioPlayer, playerName) {
