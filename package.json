@@ -8,9 +8,9 @@
     "dev": "nodemon index.js"
   },
   "dependencies": {
-    "@discordjs/opus": "^0.10.0",
+    "@discordjs/opus": "latest",
     "@discordjs/voice": "latest",
-    "discord.js": "^14.14.1",
+    "discord.js": "latest",
     "ffmpeg-static": "^5.2.0",
     "libsodium-wrappers": "^0.7.13",
     "say": "^0.16.0"
