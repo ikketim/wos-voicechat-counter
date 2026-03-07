@@ -3,6 +3,8 @@ services:
     build: .
     container_name: counterbot-vc
     restart: unless-stopped
+    # network_mode: host is required for Discord voice (UDP) to work on Linux.
+    # This has no effect on Docker Desktop for Windows — run natively there instead.
     network_mode: host
     environment:
       - NODE_ENV=production
@@ -25,4 +27,4 @@ services:
         limits:
           memory: 512M
         reservations:
-          memory: 256M 
+          memory: 256M
