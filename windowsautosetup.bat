@@ -86,7 +86,7 @@ winget install -e --id Docker.DockerDesktop --accept-package-agreements --accept
 winget install -e --id Python.Python.3 --accept-package-agreements --accept-source-agreements
 winget install -e --id Microsoft.VisualStudio.2022.BuildTools --accept-package-agreements --accept-source-agreements
 
-git clone https://github.com/Bj0rD/wos-voicechat-counter.git counterbotVC
+git clone https://github.com/ikketimnl/wos-voicechat-counter.git counterbotVC
 cd counterbotVC
 
 del /q deploy.sh
@@ -202,3 +202,4 @@ echo %MAGENTA% Happy battling! %RESET%
 pause
 
 endlocal
+
