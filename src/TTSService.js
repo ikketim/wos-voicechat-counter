@@ -46,11 +46,18 @@ class TTSService {
       const voice = await this.getWindowsVoice();
       const selectVoice = voice ? `$synthesizer.SelectVoice('${voice}');` : '';
       const safeText = text.replace(/'/g, "''");
-      const command = `powershell.exe -Command "Add-Type -AssemblyName System.Speech; $synthesizer = New-Object System.Speech.Synthesis.SpeechSynthesizer; ${selectVoice} $synthesizer.SetOutputToWaveFile('${outputFile}'); $synthesizer.Speak('${safeText}'); $synthesizer.Dispose()"`;
+      // Escape backslashes for PowerShell string
+      const safePath = outputFile.replace(/\\/g, '\\\\');
+      const command = `powershell.exe -Command "Add-Type -AssemblyName System.Speech; $synthesizer = New-Object System.Speech.Synthesis.SpeechSynthesizer; ${selectVoice} $synthesizer.SetOutputToWaveFile('${safePath}'); $synthesizer.Speak('${safeText}'); $synthesizer.Dispose()"`;
       return new Promise((resolve, reject) => {
-        exec(command, (error) => {
-          if (error) reject(new Error(`Windows TTS failed: ${error.message}`));
-          else resolve();
+        exec(command, { timeout: 30000 }, (error) => {
+          if (error) {
+            reject(new Error(`Windows TTS failed for "${text}": ${error.message}`));
+          } else if (!fs.existsSync(outputFile)) {
+            reject(new Error(`Windows TTS ran but produced no file for "${text}"`));
+          } else {
+            resolve();
+          }
         });
       });
 
@@ -105,10 +112,15 @@ class TTSService {
         }
 
         const rawFile = path.join(libraryDir, `raw_${i}.wav`);
-        await this.generateCrossPlatformTTS(`${i}.`, rawFile);
-        await runFfmpeg(['-y', '-i', rawFile, '-af', 'apad=pad_dur=1,atrim=0:1', '-ar', '48000', '-ac', '2', '-sample_fmt', 's16', numberFile]);
-        try { fs.unlinkSync(rawFile); } catch (_) {}
-        this.numberLibrary.set(i, numberFile);
+        try {
+          await this.generateCrossPlatformTTS(`${i}.`, rawFile);
+          await runFfmpeg(['-y', '-i', rawFile, '-af', 'apad=pad_dur=1,atrim=0:1', '-ar', '48000', '-ac', '2', '-sample_fmt', 's16', numberFile]);
+          try { fs.unlinkSync(rawFile); } catch (_) {}
+          this.numberLibrary.set(i, numberFile);
+        } catch (numErr) {
+          console.warn(`⚠️ Failed to generate number ${i}, skipping: ${numErr.message}`);
+          try { fs.unlinkSync(rawFile); } catch (_) {}
+        }
       }
 
       this.libraryInitialized = true;
