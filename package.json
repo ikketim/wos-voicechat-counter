@@ -8,10 +8,10 @@
     "dev": "nodemon index.js"
   },
   "dependencies": {
-    "@discordjs/opus": "latest",
-    "@discordjs/voice": "0.19.1-dev.1772841884-52173b6ca",
+    "@discordjs/opus": "^0.10.0",
+    "@discordjs/voice": "^0.19.1-dev.1772841884-52173b6ca",
     "@snazzah/davey": "latest",
-    "tweetnacl": "latest"
+    "tweetnacl": "latest",
     "discord.js": "latest",
     "ffmpeg-static": "^5.2.0",
     "libsodium-wrappers": "^0.7.13",
